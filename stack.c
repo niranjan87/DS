@@ -7,27 +7,30 @@
 #define MEMFULL (-4)
 #define SUCCESS (0)
 
-#define MAX_SIZE 10
+#define MAX_SIZE 100
 #define EMPTY -1
 typedef struct
 {
-    void *area;
+    int *area;
     int top;
 }stack; 
 
 
-int initStack(stack *s)
+int initStack(stack **s)
 {
-    s = (stack *) malloc(sizeof(stack));
-    if(!s)
+    stack *ls;
+
+    ls = (stack *) malloc(sizeof(stack));
+    if(!ls)
         return MEMFULL;
 
-    s->area = malloc(MAX_SIZE * sizeof(int));
+    ls->area = (int *) malloc(MAX_SIZE * sizeof(int));
     
-    if(!s->area)
+    if(!ls->area)
         return MEMFULL;
 
-    s->top = -1;
+    ls->top = -1;
+    *s = ls;
     return SUCCESS;
 }
 
@@ -35,7 +38,7 @@ void deinitStack(stack *s)
 {
     if(!s || !s->area)
         return;
-        
+
     free(s->area);
     free(s);
     s = NULL;
@@ -50,7 +53,7 @@ int push(stack *s, int val)
         return MAXREACHED;
     
     s->top++;
-    ((int *)s->area)[s->top] = val;
+    s->area[s->top] = val;
     return SUCCESS;
 }
 
@@ -62,25 +65,31 @@ int pop(stack *s, int *val)
     if(s->top == EMPTY)
         return UNDERFLOW;
     
-    *val = ((int *)s->area)[s->top--];
+    *val = s->area[s->top];
+    s->top--;
     return SUCCESS;
 }
 
 int main()
 {
     stack *s;
-    int err = initStack(s);
+    int err = initStack(&s);
     int val = 0;
 
     if(err != SUCCESS)
+    {
         printf("\r\nStack Init Error (%d)", err);
+        return -1;
+    }
     else
         printf("\r\nStack Init Complete");
-
-    while((err = push(s,val)) == SUCCESS)
+    
+    err = push(s,val);
+    while(err == SUCCESS)
     {
         printf("\r\nPushed (%d)", val);
         val++;
+        err = push(s,val);
     }
     printf("\r\nPush Error (%d)",err);
 
@@ -91,6 +100,6 @@ int main()
     printf("\r\nPop Error (%d)", err);
 
     deinitStack(s);
-
+    printf("\r\nStack Deinit Complete...\r\n");
     return 0;
 }
